@@ -1,0 +1,30 @@
+version: 0.2
+phases:
+  install:
+    runtime-versions:
+      nodejs: 20
+    commands:
+      - npm ci --legacy-peer-deps
+  pre_build:
+    commands:
+      - npm run lint
+      - npm test -- --passWithNoTests
+  build:
+    commands:
+      - npm run build
+      - aws ecr get-login-password --region $AWS_REGION | docker login --username AWS --password-stdin $ECR_REGISTRY
+      - docker build -t $IMAGE_REPO_NAME:$IMAGE_TAG -f src/Dockerfile .
+      - docker tag $IMAGE_REPO_NAME:$IMAGE_TAG $IMAGE_REPO_NAME:$IMAGE_TAG
+      - docker push $IMAGE_REPO_NAME:$IMAGE_TAG
+  post_build:
+    commands:
+      - printf '{"image":"%s"}' "$IMAGE_REPO_NAME:$IMAGE_TAG" > image.json
+      - echo "Image pushed - manually update k8s-manifests/deployment.yaml and run kubectl apply"
+artifacts:
+  files:
+    - image.json
+    - k8s-manifests/**
+    - observability/**
+cache:
+  paths:
+    - node_modules/**/*

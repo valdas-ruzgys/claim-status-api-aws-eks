@@ -1,0 +1,25 @@
+{
+  "CLM-1001": [
+    "Initial inspection completed; awaiting contractor estimate.",
+    "Customer provided photos via portal; quality acceptable.",
+    "Adjuster requested receipts for temporary repairs."
+  ],
+  "CLM-1002": [
+    "Pending police report upload from customer.",
+    "Rental coverage requested; reviewing eligibility."
+  ],
+  "CLM-1003": [
+    "Claim closed and payment issued on 2025-12-10.",
+    "Customer confirmed receipt and no further questions."
+  ],
+  "CLM-1004": [
+    "Denied due to policy exclusion for flood damage.",
+    "Supervisor reviewed denial letter; sent to customer.",
+    "Customer may appeal within 30 days."
+  ],
+  "CLM-1005": [
+    "Large loss: structural damage noted.",
+    "Engineer site visit scheduled for next week.",
+    "Mortgage company requesting joint payment." 
+  ]
+}
