@@ -1,0 +1,11 @@
+{
+  "IntegrationType": "HTTP_PROXY",
+  "IntegrationUri": "http://k8s-default-claimsta-3fc9386aa2-1027118312.us-east-1.elb.amazonaws.com",
+  "IntegrationMethod": "ANY",
+  "PayloadFormatVersion": "1.0",
+  "ConnectionType": "INTERNET",
+  "TimeoutInMillis": 30000,
+  "Description": "Integration with EKS Application Load Balancer",
+  "RequestParameters": {},
+  "PassthroughBehavior": "WHEN_NO_MATCH"
+}

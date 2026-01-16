@@ -1,0 +1,15 @@
+{
+  "CorsConfiguration": {
+    "AllowOrigins": ["*"],
+    "AllowMethods": ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    "AllowHeaders": [
+      "Content-Type",
+      "Authorization",
+      "X-Amz-Date",
+      "X-Api-Key",
+      "X-Amz-Security-Token"
+    ],
+    "MaxAge": 3600,
+    "AllowCredentials": false
+  }
+}

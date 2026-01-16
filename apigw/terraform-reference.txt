@@ -1,0 +1,174 @@
+# API Gateway Terraform Configuration Reference
+# This file documents the Terraform resources used to create the API Gateway
+# Actual source: ../iac/terraform/main.tf
+#
+# NOTE: This is a reference/documentation file only. 
+# The actual working Terraform code is in ../iac/terraform/main.tf
+
+# ============================================================================
+# CURRENT CONFIGURATION (as deployed)
+# ============================================================================
+
+HTTP API Gateway:
+  Resource Type: aws_apigatewayv2_api
+  Name: claim-status-api
+  Protocol: HTTP
+  API ID: z9h8kzgrea
+  Endpoint: https://z9h8kzgrea.execute-api.us-east-1.amazonaws.com
+  Tags: { project = "claim-status" }
+
+Integration:
+  Resource Type: aws_apigatewayv2_integration
+  Type: HTTP_PROXY
+  URI: http://k8s-default-claimsta-3fc9386aa2-1027118312.us-east-1.elb.amazonaws.com
+  Method: ANY
+  Payload Format: 1.0
+
+Route:
+  Resource Type: aws_apigatewayv2_route
+  Route Key: $default (catch-all)
+  Target: integrations/{integration-id}
+
+Stage:
+  Resource Type: aws_apigatewayv2_stage
+  Name: $default
+  Auto Deploy: true
+  Tags: { project = "claim-status" }
+
+# ============================================================================
+# TERRAFORM CODE IN ../iac/terraform/main.tf
+# ============================================================================
+
+resource "aws_apigatewayv2_api" "http" {
+  name          = "${local.name}-api"
+  protocol_type = "HTTP"
+  tags          = local.tags
+}
+
+resource "aws_apigatewayv2_integration" "eks" {
+  count                  = var.ingress_alb_dns != "" ? 1 : 0
+  api_id                 = aws_apigatewayv2_api.http.id
+  integration_type       = "HTTP_PROXY"
+  integration_uri        = "http://${var.ingress_alb_dns}"
+  integration_method     = "ANY"
+  payload_format_version = "1.0"
+}
+
+resource "aws_apigatewayv2_route" "claims" {
+  count     = var.ingress_alb_dns != "" ? 1 : 0
+  api_id    = aws_apigatewayv2_api.http.id
+  route_key = "$default"
+  target    = "integrations/${aws_apigatewayv2_integration.eks[0].id}"
+}
+
+resource "aws_apigatewayv2_stage" "default" {
+  api_id      = aws_apigatewayv2_api.http.id
+  name        = "$default"
+  auto_deploy = true
+  tags        = local.tags
+}
+
+output "apigw_endpoint" {
+  value       = aws_apigatewayv2_api.http.api_endpoint
+  description = "API Gateway endpoint URL"
+}
+
+# ============================================================================
+# ENHANCEMENT OPTIONS (not currently deployed)
+# ============================================================================
+
+# 1. CORS Configuration
+# Add to aws_apigatewayv2_api resource:
+
+  cors_configuration {
+    allow_origins     = ["*"]
+    allow_methods     = ["GET", "POST", "PUT", "DELETE", "OPTIONS"]
+    allow_headers     = ["Content-Type", "Authorization", "X-Amz-Date", "X-Api-Key"]
+    max_age           = 3600
+    allow_credentials = false
+  }
+
+# 2. Throttling and Access Logs
+# Replace aws_apigatewayv2_stage resource with:
+
+resource "aws_apigatewayv2_stage" "default" {
+  api_id      = aws_apigatewayv2_api.http.id
+  name        = "$default"
+  auto_deploy = true
+  
+  default_route_settings {
+    throttling_burst_limit   = 5000
+    throttling_rate_limit    = 2000
+    detailed_metrics_enabled = true
+  }
+  
+  access_log_settings {
+    destination_arn = aws_cloudwatch_log_group.api_gateway.arn
+    format = jsonencode({
+      requestId         = "$context.requestId"
+      ip                = "$context.identity.sourceIp"
+      requestTime       = "$context.requestTime"
+      httpMethod        = "$context.httpMethod"
+      routeKey          = "$context.routeKey"
+      status            = "$context.status"
+      protocol          = "$context.protocol"
+      responseLength    = "$context.responseLength"
+      integrationError  = "$context.integrationErrorMessage"
+    })
+  }
+  
+  tags = local.tags
+}
+
+# 3. CloudWatch Log Group for Access Logs
+
+resource "aws_cloudwatch_log_group" "api_gateway" {
+  name              = "/aws/apigateway/claim-status-api"
+  retention_in_days = 7
+  tags              = local.tags
+}
+
+# 4. Custom Domain Name (requires ACM certificate)
+
+resource "aws_apigatewayv2_domain_name" "main" {
+  domain_name = "api.example.com"
+  
+  domain_name_configuration {
+    certificate_arn = aws_acm_certificate.api.arn
+    endpoint_type   = "REGIONAL"
+    security_policy = "TLS_1_2"
+  }
+  
+  tags = local.tags
+}
+
+resource "aws_apigatewayv2_api_mapping" "main" {
+  api_id      = aws_apigatewayv2_api.http.id
+  domain_name = aws_apigatewayv2_domain_name.main.id
+  stage       = aws_apigatewayv2_stage.default.id
+}
+
+# 5. WAF Web ACL Association (DDoS protection)
+
+resource "aws_wafv2_web_acl_association" "api_gateway" {
+  resource_arn = aws_apigatewayv2_stage.default.arn
+  web_acl_arn  = aws_wafv2_web_acl.main.arn
+}
+
+# ============================================================================
+# MIGRATION NOTES
+# ============================================================================
+
+To modify the actual API Gateway:
+1. Edit ../iac/terraform/main.tf
+2. Run: cd iac/terraform && terraform plan
+3. Review changes carefully
+4. Run: terraform apply
+5. Update this documentation file if needed
+
+Current deployment details:
+- State file: iac/terraform/terraform.tfstate
+- Variables: iac/terraform/terraform.tfvars
+- Region: us-east-1
+- AWS Profile: stackroute
+- Account ID: 904049160752

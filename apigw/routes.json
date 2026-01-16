@@ -1,0 +1,16 @@
+{
+  "Routes": [
+    {
+      "RouteKey": "$default",
+      "Target": "integrations/{integrationId}",
+      "AuthorizationType": "NONE",
+      "ApiKeyRequired": false,
+      "Description": "Default route - proxies all requests to EKS ALB"
+    }
+  ],
+  "Notes": {
+    "DefaultRoute": "The $default route catches all HTTP methods and paths",
+    "Backend": "Requests are forwarded to the EKS Application Load Balancer",
+    "PathMapping": "All paths are preserved and forwarded as-is to the backend"
+  }
+}

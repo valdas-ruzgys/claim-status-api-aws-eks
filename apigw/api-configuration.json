@@ -1,0 +1,13 @@
+{
+  "ApiId": "z9h8kzgrea",
+  "Name": "claim-status-api",
+  "ProtocolType": "HTTP",
+  "ApiEndpoint": "https://z9h8kzgrea.execute-api.us-east-1.amazonaws.com",
+  "CreatedDate": "2026-01-30",
+  "RouteSelectionExpression": "$request.method $request.path",
+  "DisableExecuteApiEndpoint": false,
+  "Tags": {
+    "project": "claim-status"
+  },
+  "Description": "API Gateway HTTP API for Claims Status Service - Routes requests to EKS ALB"
+}

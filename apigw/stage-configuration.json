@@ -1,0 +1,19 @@
+{
+  "StageName": "$default",
+  "AutoDeploy": true,
+  "DefaultRouteSettings": {
+    "DataTraceEnabled": false,
+    "DetailedMetricsEnabled": true,
+    "LoggingLevel": "INFO",
+    "ThrottlingBurstLimit": 5000,
+    "ThrottlingRateLimit": 2000
+  },
+  "AccessLogSettings": {
+    "DestinationArn": "arn:aws:logs:us-east-1:904049160752:log-group:/aws/apigateway/claim-status-api",
+    "Format": "$context.requestId $context.error.message $context.error.messageString"
+  },
+  "Tags": {
+    "Environment": "production",
+    "ManagedBy": "terraform"
+  }
+}

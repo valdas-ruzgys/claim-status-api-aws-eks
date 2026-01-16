@@ -1,0 +1,22 @@
+{
+  "ThrottleSettings": {
+    "BurstLimit": 5000,
+    "RateLimit": 2000
+  },
+  "Description": "Default throttle settings for API Gateway stage",
+  "Routes": {
+    "GET /claims/{claimId}": {
+      "BurstLimit": 100,
+      "RateLimit": 50
+    },
+    "POST /claims/{claimId}/summarize": {
+      "BurstLimit": 20,
+      "RateLimit": 10,
+      "Notes": "Lower limit due to Bedrock API costs"
+    },
+    "POST /claims": {
+      "BurstLimit": 50,
+      "RateLimit": 25
+    }
+  }
+}

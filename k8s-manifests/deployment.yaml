@@ -1,0 +1,54 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: claim-status-api
+  labels:
+    app: claim-status-api
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: claim-status-api
+  template:
+    metadata:
+      labels:
+        app: claim-status-api
+    spec:
+      serviceAccountName: claim-status-api
+      containers:
+        - name: api
+          image: 904049160752.dkr.ecr.us-east-1.amazonaws.com/claim-status-api:latest
+          ports:
+            - containerPort: 3000
+          env:
+            - name: AWS_REGION
+              value: us-east-1
+            - name: CLAIMS_TABLE_NAME
+              value: claim-status-claims
+            - name: NOTES_BUCKET
+              value: claim-status-claim-notes
+            - name: BEDROCK_MODEL_ID
+              value: amazon.nova-micro-v1:0
+            - name: USE_MOCKS
+              value: 'false'
+          resources:
+            requests:
+              cpu: 250m
+              memory: 256Mi
+            limits:
+              cpu: 500m
+              memory: 512Mi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: claim-status-api
+spec:
+  type: ClusterIP
+  selector:
+    app: claim-status-api
+  ports:
+    - port: 80
+      targetPort: 3000
+      protocol: TCP
+      name: http
