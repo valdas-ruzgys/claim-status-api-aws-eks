@@ -1,0 +1,56 @@
+version: 0.2
+phases:
+  install:
+    runtime-versions:
+      nodejs: 20
+    commands:
+      - npm ci --legacy-peer-deps
+      # Install kubectl
+      - curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
+      - chmod +x kubectl
+      - mv kubectl /usr/local/bin/
+      - kubectl version --client
+  pre_build:
+    commands:
+      - npm run lint
+      - npm test -- --passWithNoTests
+      # Configure kubectl for EKS
+      - aws eks update-kubeconfig --name $EKS_CLUSTER_NAME --region $AWS_REGION
+  build:
+    commands:
+      - npm run build
+      - aws ecr get-login-password --region $AWS_REGION | docker login --username AWS --password-stdin $ECR_REGISTRY
+      - docker build -t $IMAGE_REPO_NAME:$IMAGE_TAG -f src/Dockerfile .
+      - docker tag $IMAGE_REPO_NAME:$IMAGE_TAG $IMAGE_REPO_NAME:$IMAGE_TAG
+      - docker push $IMAGE_REPO_NAME:$IMAGE_TAG
+  post_build:
+    commands:
+      - printf '{"image":"%s"}' "$IMAGE_REPO_NAME:$IMAGE_TAG" > image.json
+      - echo "Image pushed successfully - $IMAGE_REPO_NAME:$IMAGE_TAG"
+      # Deploy to EKS
+      - echo "Deploying to EKS cluster $EKS_CLUSTER_NAME..."
+      - echo "Checking cluster connectivity..."
+      - kubectl get nodes
+      - echo "Checking if deployment exists..."
+      - |
+        if kubectl get deployment claim-status-api -n default >/dev/null 2>&1; then
+          echo "Deployment exists, updating image..."
+          kubectl set image deployment/claim-status-api claim-status-api=$IMAGE_REPO_NAME:$IMAGE_TAG -n default
+          kubectl rollout status deployment/claim-status-api -n default --timeout=5m
+          echo "Deployment updated successfully!"
+        else
+          echo "Deployment does not exist, creating from manifests..."
+          kubectl apply -f k8s-manifests/
+          kubectl rollout status deployment/claim-status-api -n default --timeout=5m
+          echo "Deployment created successfully!"
+        fi
+      - echo "Verifying pods are running..."
+      - kubectl get pods -n default -l app=claim-status-api
+artifacts:
+  files:
+    - image.json
+    - k8s-manifests/**
+    - observability/**
+cache:
+  paths:
+    - node_modules/**/*

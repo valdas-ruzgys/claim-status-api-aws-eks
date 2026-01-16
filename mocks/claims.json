@@ -1,0 +1,47 @@
+[
+  {
+    "id": "CLM-1001",
+    "status": "OPEN",
+    "policyNumber": "POL-9001",
+    "lastUpdated": "2025-12-15T12:00:00Z",
+    "amount": 12500,
+    "customerName": "Alex Johnson",
+    "adjuster": "Jamie Smith"
+  },
+  {
+    "id": "CLM-1002",
+    "status": "PENDING_INFO",
+    "policyNumber": "POL-9002",
+    "lastUpdated": "2025-12-12T09:30:00Z",
+    "amount": 3200,
+    "customerName": "Priya Patel",
+    "adjuster": "Morgan Lee"
+  },
+  {
+    "id": "CLM-1003",
+    "status": "CLOSED",
+    "policyNumber": "POL-9003",
+    "lastUpdated": "2025-12-10T15:45:00Z",
+    "amount": 7800,
+    "customerName": "Carlos Garcia",
+    "adjuster": "Taylor Brooks"
+  },
+  {
+    "id": "CLM-1004",
+    "status": "DENIED",
+    "policyNumber": "POL-9004",
+    "lastUpdated": "2025-12-08T11:10:00Z",
+    "amount": 5400,
+    "customerName": "Mei Chen",
+    "adjuster": "Jordan Parker"
+  },
+  {
+    "id": "CLM-1005",
+    "status": "OPEN",
+    "policyNumber": "POL-9005",
+    "lastUpdated": "2025-12-05T17:20:00Z",
+    "amount": 22000,
+    "customerName": "Ava Thompson",
+    "adjuster": "Jamie Smith"
+  }
+]
